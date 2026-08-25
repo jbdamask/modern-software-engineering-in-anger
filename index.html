@@ -279,9 +279,11 @@ a{ color:var(--accent) }
 <li><a href="#automate-routine-operations">Automate Routine Operations</a></li>
 </ul>
 </li>
-<li><a class="nav-top" href="#11-consistency"><span class="nav-num">11</span><span>Consistency</span></a>
+<li><a class="nav-top" href="#11-infrastructure-as-code"><span class="nav-num">11</span><span>Infrastructure as Code</span></a>
 </li>
-<li><a class="nav-top" href="#12-documentation-and-agent-context"><span class="nav-num">12</span><span>Documentation and Agent Context</span></a>
+<li><a class="nav-top" href="#12-consistency"><span class="nav-num">12</span><span>Consistency</span></a>
+</li>
+<li><a class="nav-top" href="#13-documentation-and-agent-context"><span class="nav-num">13</span><span>Documentation and Agent Context</span></a>
 <ul class="nav-sub">
 <li><a href="#co-location">Co-location</a></li>
 <li><a href="#treat-documentation-as-an-agent-interface">Treat Documentation as an Agent Interface</a></li>
@@ -310,6 +312,7 @@ a{ color:var(--accent) }
 <li><strong>Cost Efficiency</strong> — Architecture should avoid unnecessary standing infrastructure and keep idle cost close to zero whenever practical.</li>
 <li><strong>Security</strong> - Minimize trust, privilege, exposed surface area, and sensitive data.</li>
 <li><strong>Operability</strong> - Production software should make its health, behavior, and failures understandable.</li>
+<li><strong>Infrastructure as Code</strong> - Treat deployment infrastructure as versioned software.</li>
 <li><strong>Consistency</strong> — Similar problems are solved in similar ways using established conventions.</li>
 <li><strong>Documentation and Agent Context</strong> - The smallest durable body of knowledge that allows a human or agent to make good decisions about the system.</li>
 </ol>
@@ -733,8 +736,22 @@ a{ color:var(--accent) }
 <p>Automate repetitive operational work when practical, especially deployment, recovery, maintenance, and health checks.</p>
 <p>Operational complexity should earn its place just like implementation complexity.</p>
 </section>
-<section id="sec-11-consistency" class="chapter" data-target="11-consistency">
-<h1 id="11-consistency"><span class="chapter-num">11</span>Consistency</h1>
+<section id="sec-11-infrastructure-as-code" class="chapter" data-target="11-infrastructure-as-code">
+<h1 id="11-infrastructure-as-code"><span class="chapter-num">11</span>Infrastructure as Code</h1>
+<p>Production infrastructure should be defined as code whenever practical.</p>
+<p>Infrastructure definitions should be version-controlled, reviewable, repeatable, and sufficient to recreate the environment without relying on undocumented manual configuration.</p>
+<p>Prefer infrastructure changes made through code over changes made directly in consoles or production systems.</p>
+<p>Infrastructure as Code should make it possible to:</p>
+<ul>
+<li>Reproduce environments consistently.</li>
+<li>Review and audit infrastructure changes.</li>
+<li>Recover or rebuild infrastructure when necessary.</li>
+<li>Reduce configuration drift between environments.</li>
+</ul>
+<p>Manual changes may occasionally be necessary, but they should be captured back into the infrastructure definition rather than becoming permanent hidden state.</p>
+</section>
+<section id="sec-12-consistency" class="chapter" data-target="12-consistency">
+<h1 id="12-consistency"><span class="chapter-num">12</span>Consistency</h1>
 <p>Similar problems should generally be solved in similar ways.</p>
 <p>Consistency should apply to:</p>
 <ul>
@@ -750,8 +767,8 @@ a{ color:var(--accent) }
 </ul>
 <p>Do not preserve a poor pattern merely because it already exists.</p>
 </section>
-<section id="sec-12-documentation-and-agent-context" class="chapter" data-target="12-documentation-and-agent-context">
-<h1 id="12-documentation-and-agent-context"><span class="chapter-num">12</span>Documentation and Agent Context</h1>
+<section id="sec-13-documentation-and-agent-context" class="chapter" data-target="13-documentation-and-agent-context">
+<h1 id="13-documentation-and-agent-context"><span class="chapter-num">13</span>Documentation and Agent Context</h1>
 <p>The objective is to document the smallest durable body of knowledge that allows a human or agent to make good decisions about the system, exposed progressively as that knowledge becomes relevant.</p>
 <p>Documentation is part of the software system. It should live with the code, evolve with the code, and be structured for efficient discovery by both humans and AI coding agents.</p>
 <h2 id="co-location">Co-location</h2>
