@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Software Engineering in Anger</title>
+<meta name="description" content="Practical principles for building software">
+<meta property="og:title" content="Modern Software Engineering in Anger">
+<meta property="og:description" content="Practical principles for building software">
+<meta property="og:type" content="article">
+<style>
+:root{
+  --bg:#fbfaf8; --panel:#ffffff; --ink:#1c1b19; --ink-soft:#4a4742; --ink-faint:#6f6b64;
+  --rule:#e6e2db; --rule-soft:#efece6; --accent:#9a3412; --accent-soft:#fdf1e7;
+  --code-bg:#f4f1ec; --code-ink:#3a3733; --mark:#b45309;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15140f; --panel:#1b1a15; --ink:#eae6dd; --ink-soft:#bdb7ab; --ink-faint:#8d877b;
+    --rule:#302d26; --rule-soft:#26241e; --accent:#f0a072; --accent-soft:#2a201a;
+    --code-bg:#221f19; --code-ink:#d6d0c4; --mark:#e0a458;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15140f; --panel:#1b1a15; --ink:#eae6dd; --ink-soft:#bdb7ab; --ink-faint:#8d877b;
+  --rule:#302d26; --rule-soft:#26241e; --accent:#f0a072; --accent-soft:#2a201a;
+  --code-bg:#221f19; --code-ink:#d6d0c4; --mark:#e0a458;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--serif); font-size:18px; line-height:1.68;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---- masthead ---- */
+.masthead{
+  border-bottom:1px solid var(--rule);
+  padding:clamp(3.5rem,9vw,7rem) 1.5rem clamp(2.5rem,5vw,4rem);
+  text-align:center; position:relative;
+}
+.eyebrow{
+  font-family:var(--sans); font-size:.7rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-faint); margin:0 0 1.6rem;
+}
+.masthead h1{
+  font-size:clamp(2.3rem,6.5vw,4.1rem); line-height:1.06; margin:0 auto;
+  max-width:16ch; font-weight:600; letter-spacing:-.02em;
+}
+.masthead .sub{
+  font-family:var(--sans); font-size:clamp(.95rem,2vw,1.1rem); color:var(--ink-soft);
+  margin:1.4rem auto 0; max-width:44ch; font-weight:400;
+}
+.rule-orn{ width:44px; height:1px; background:var(--accent); margin:2.2rem auto 0; opacity:.7 }
+
+/* ---- layout ---- */
+.wrap{ max-width:1180px; margin:0 auto; padding:0 1.5rem; display:grid; gap:clamp(2rem,5vw,4.5rem); grid-template-columns:1fr; }
+@media (min-width:1000px){ .wrap{ grid-template-columns:250px minmax(0,1fr); align-items:start } }
+
+/* ---- nav ---- */
+.toc{ font-family:var(--sans); padding-top:3rem }
+@media (min-width:1000px){
+  .toc{ position:sticky; top:0; max-height:100vh; overflow-y:auto; padding-bottom:3rem;
+        scrollbar-width:thin; scrollbar-color:var(--rule) transparent }
+}
+.toc h2{
+  font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-faint);
+  margin:0 0 1.1rem; font-weight:600;
+}
+.toc ul{ list-style:none; margin:0; padding:0 }
+.toc > ul > li{ margin-bottom:.15rem }
+.nav-top{
+  display:flex; gap:.6rem; align-items:baseline; text-decoration:none; color:var(--ink-soft);
+  font-size:.86rem; line-height:1.35; padding:.36rem .5rem .36rem .1rem; border-radius:5px;
+  transition:color .15s, background .15s;
+}
+.nav-top:hover{ color:var(--ink); background:var(--rule-soft) }
+.nav-num{
+  font-variant-numeric:tabular-nums; font-size:.68rem; color:var(--ink-faint);
+  min-width:1.1em; text-align:right; flex:none; padding-top:.1em;
+}
+.nav-num-empty{ color:var(--rule) }
+.nav-sub{ margin:.1rem 0 .5rem 1.7rem; display:none }
+.nav-sub li a{
+  display:block; text-decoration:none; color:var(--ink-faint); font-size:.79rem;
+  line-height:1.3; padding:.24rem .4rem; border-left:1px solid var(--rule); padding-left:.7rem;
+  transition:color .15s, border-color .15s;
+}
+.nav-sub li a:hover{ color:var(--ink); border-color:var(--accent) }
+li.active > .nav-top{ color:var(--accent); font-weight:600 }
+li.active > .nav-top .nav-num{ color:var(--accent) }
+li.active > .nav-sub{ display:block }
+.nav-sub li a.active{ color:var(--accent); border-color:var(--accent) }
+
+/* ---- content ---- */
+.content{ min-width:0; padding-bottom:5rem; max-width:70ch }
+.chapter{ padding:3.2rem 0; border-bottom:1px solid var(--rule-soft) }
+.chapter:last-child{ border-bottom:0 }
+.chapter.intro{ padding-top:3.5rem }
+
+.content h1{
+  font-size:clamp(1.75rem,4vw,2.5rem); line-height:1.15; letter-spacing:-.015em;
+  margin:0 0 1.8rem; font-weight:600; scroll-margin-top:1.5rem; position:relative;
+}
+.chapter-num{
+  display:block; font-family:var(--sans); font-size:.7rem; letter-spacing:.2em;
+  color:var(--accent); margin-bottom:.7rem; font-weight:700;
+}
+.chapter-num::before{ content:"§ " }
+.content h2{
+  font-size:1.2rem; font-weight:600; letter-spacing:-.005em; margin:2.9rem 0 .9rem;
+  scroll-margin-top:1.5rem; line-height:1.3;
+}
+.content h3{
+  font-family:var(--sans); font-size:.95rem; font-weight:650; margin:2.1rem 0 .7rem;
+  color:var(--ink-soft); scroll-margin-top:1.5rem;
+}
+.content p{ margin:0 0 1.15rem; color:var(--ink-soft) }
+.content strong{ color:var(--ink); font-weight:650 }
+.content em{ font-style:italic }
+
+.content ul,.content ol{ margin:0 0 1.35rem; padding-left:1.35rem; color:var(--ink-soft) }
+.content li{ margin-bottom:.42rem; padding-left:.25rem }
+.content li::marker{ color:var(--ink-faint) }
+.content ol{ counter-reset:none }
+.content ol > li::marker{ font-family:var(--sans); font-size:.85em; color:var(--accent) }
+.content ul ul,.content ol ol{ margin-top:.42rem; margin-bottom:.2rem }
+
+/* the opening principles list reads as a summary card */
+.intro ol{
+  list-style:none; padding:0; counter-reset:pl; margin-top:1.6rem;
+  display:grid; gap:.1rem;
+}
+.intro ol > li{
+  counter-increment:pl; position:relative; padding:.72rem .9rem .72rem 3rem; margin:0;
+  border-radius:7px; transition:background .15s;
+}
+.intro ol > li:hover{ background:var(--rule-soft) }
+.intro ol > li::before{
+  content:counter(pl,decimal-leading-zero); position:absolute; left:.9rem; top:.85rem;
+  font-family:var(--sans); font-size:.7rem; font-weight:700; color:var(--accent);
+  font-variant-numeric:tabular-nums;
+}
+.intro ol > li::marker{ content:none }
+.intro h2{ margin-top:2.4rem }
+
+blockquote{
+  margin:1.6rem 0; padding:.2rem 0 .2rem 1.3rem; border-left:2px solid var(--accent);
+  color:var(--ink-soft); font-style:italic;
+}
+code{
+  font-family:var(--mono); font-size:.85em; background:var(--code-bg); color:var(--code-ink);
+  padding:.14em .38em; border-radius:4px;
+}
+pre{
+  background:var(--code-bg); border:1px solid var(--rule); border-radius:8px;
+  padding:1.05rem 1.15rem; overflow-x:auto; margin:1.5rem 0; line-height:1.55;
+}
+pre code{ background:none; padding:0; font-size:.82rem; color:var(--code-ink) }
+hr{ border:0; border-top:1px solid var(--rule); margin:2.5rem 0 }
+a{ color:var(--accent) }
+
+/* a paragraph that is only bold text = pull quote */
+.content p > strong:only-child{ font-weight:650 }
+
+/* ---- footer / controls ---- */
+.site-foot{
+  border-top:1px solid var(--rule); padding:2.5rem 1.5rem 4rem; text-align:center;
+  font-family:var(--sans); font-size:.8rem; color:var(--ink-faint);
+}
+.theme-toggle{
+  position:fixed; top:1rem; right:1rem; z-index:20;
+  width:36px; height:36px; border-radius:50%; border:1px solid var(--rule);
+  background:var(--panel); color:var(--ink-soft); cursor:pointer;
+  font-size:.95rem; line-height:1; display:flex; align-items:center; justify-content:center;
+  transition:border-color .15s, color .15s;
+}
+.theme-toggle:hover{ border-color:var(--accent); color:var(--accent) }
+.progress{
+  position:fixed; top:0; left:0; height:2px; background:var(--accent); width:0;
+  z-index:30; transition:width .1s linear;
+}
+@media print{ .toc,.theme-toggle,.progress{ display:none } .wrap{ display:block } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme" title="Toggle theme">&#9680;</button>
+
+<header class="masthead">
+  <p class="eyebrow">Engineering Principles</p>
+  <h1>Modern Software Engineering in Anger</h1>
+  <p class="sub">Practical principles for building software</p>
+  <div class="rule-orn"></div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ul>
+<li><a class="nav-top" href="#1-joyful-and-intuitive-user-experience"><span class="nav-num">1</span><span>Joyful and Intuitive User Experience</span></a>
+<ul class="nav-sub">
+<li><a href="#optimize-for-the-users-goal">Optimize for the User&#x27;s Goal</a></li>
+<li><a href="#make-the-common-path-obvious">Make the Common Path Obvious</a></li>
+<li><a href="#minimize-friction">Minimize Friction</a></li>
+<li><a href="#make-it-feel-fast">Make It Feel Fast</a></li>
+<li><a href="#keep-users-oriented-and-recoverable">Keep Users Oriented and Recoverable</a></li>
+<li><a href="#hide-incidental-complexity">Hide Incidental Complexity</a></li>
+<li><a href="#design-for-everyone">Design for Everyone</a></li>
+<li><a href="#product-quality-is-an-engineering-responsibility">Product Quality Is an Engineering Responsibility</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#2-correctness"><span class="nav-num">2</span><span>Correctness</span></a>
+<ul class="nav-sub">
+<li><a href="#make-the-contract-explicit">Make the Contract Explicit</a></li>
+<li><a href="#preserve-invariants-and-data-integrity">Preserve Invariants and Data Integrity</a></li>
+<li><a href="#validate-at-boundaries">Validate at Boundaries</a></li>
+<li><a href="#test-the-behavior-that-matters">Test the Behavior That Matters</a></li>
+<li><a href="#verify-rather-than-assume">Verify Rather Than Assume</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#3-clarity"><span class="nav-num">3</span><span>Clarity</span></a>
+<ul class="nav-sub">
+<li><a href="#make-behavior-apparent">Make Behavior Apparent</a></li>
+<li><a href="#explain-rationale-when-necessary">Explain Rationale When Necessary</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#4-simplicity"><span class="nav-num">4</span><span>Simplicity</span></a>
+<ul class="nav-sub">
+<li><a href="#question-the-need">Question the Need</a></li>
+<li><a href="#use-the-least-mechanism-necessary">Use the Least Mechanism Necessary</a></li>
+<li><a href="#complexity-must-earn-its-place">Complexity Must Earn Its Place</a></li>
+<li><a href="#dont-optimize-what-can-be-removed">Don&#x27;t Optimize What Can Be Removed</a></li>
+<li><a href="#gate-the-introduction-of-third-party-dependencies">Gate the Introduction of Third-Party Dependencies</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#5-concision"><span class="nav-num">5</span><span>Concision</span></a>
+</li>
+<li><a class="nav-top" href="#6-maintainability"><span class="nav-num">6</span><span>Maintainability</span></a>
+<ul class="nav-sub">
+<li><a href="#optimize-for-safe-change">Optimize for Safe Change</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#7-extensibility"><span class="nav-num">7</span><span>Extensibility</span></a>
+<ul class="nav-sub">
+<li><a href="#design-around-likely-axes-of-change">Design Around Likely Axes of Change</a></li>
+<li><a href="#use-modular-boundaries">Use Modular Boundaries</a></li>
+<li><a href="#prefer-stable-contracts-over-internal-coupling">Prefer Stable Contracts Over Internal Coupling</a></li>
+<li><a href="#prefer-composition-over-central-branching">Prefer Composition Over Central Branching</a></li>
+<li><a href="#preserve-replaceability">Preserve Replaceability</a></li>
+<li><a href="#avoid-speculative-extensibility">Avoid Speculative Extensibility</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#8-cost-efficient-architecture"><span class="nav-num">8</span><span>Cost-Efficient Architecture</span></a>
+<ul class="nav-sub">
+<li><a href="#do-not-provision-infrastructure-by-habit">Do Not Provision Infrastructure by Habit</a></li>
+<li><a href="#prefer-architectures-that-scale-down">Prefer Architectures That Scale Down</a></li>
+<li><a href="#standing-costs-must-be-sensible">Standing Costs Must Be Sensible</a></li>
+<li><a href="#consider-total-operational-cost">Consider Total Operational Cost</a></li>
+<li><a href="#start-small-and-scale-when-evidence-requires-it">Start Small and Scale When Evidence Requires It</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#9-security"><span class="nav-num">9</span><span>Security</span></a>
+<ul class="nav-sub">
+<li><a href="#apply-least-privilege">Apply Least Privilege</a></li>
+<li><a href="#make-trust-boundaries-explicit">Make Trust Boundaries Explicit</a></li>
+<li><a href="#minimize-sensitive-data">Minimize Sensitive Data</a></li>
+<li><a href="#fail-securely">Fail Securely</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#10-operability"><span class="nav-num">10</span><span>Operability</span></a>
+<ul class="nav-sub">
+<li><a href="#make-the-system-observable">Make the System Observable</a></li>
+<li><a href="#design-for-recovery">Design for Recovery</a></li>
+<li><a href="#automate-routine-operations">Automate Routine Operations</a></li>
+</ul>
+</li>
+<li><a class="nav-top" href="#11-consistency"><span class="nav-num">11</span><span>Consistency</span></a>
+</li>
+<li><a class="nav-top" href="#12-documentation-and-agent-context"><span class="nav-num">12</span><span>Documentation and Agent Context</span></a>
+<ul class="nav-sub">
+<li><a href="#co-location">Co-location</a></li>
+<li><a href="#treat-documentation-as-an-agent-interface">Treat Documentation as an Agent Interface</a></li>
+<li><a href="#organization">Organization</a></li>
+<li><a href="#progressive-disclosure-pattern">Progressive Disclosure Pattern</a></li>
+<li><a href="#keep-indexes-small-and-high-signal">Keep Indexes Small and High-Signal</a></li>
+<li><a href="#prefer-focused-self-contained-documents">Prefer Focused, Self-Contained Documents</a></li>
+<li><a href="#document-types">Document Types</a></li>
+<li><a href="#keep-documentation-current">Keep Documentation Current</a></li>
+</ul>
+</li>
+    </ul>
+  </nav>
+  <main class="content">
+<section class="chapter intro">
+<h2 id="core-principles">Core Principles</h2>
+<p>High-quality software should optimize for the following attributes:</p>
+<ol>
+<li><strong>Joyful and Intuitive User Experience</strong> — Interactions should feel obvious, fast, and pleasant, such that users reach for the application by choice rather than obligation.</li>
+<li><strong>Correctness</strong> — The software reliably does what it is intended to do.</li>
+<li><strong>Clarity</strong> — The code's purpose, behavior, and rationale are clear.</li>
+<li><strong>Simplicity</strong> — The system uses no more complexity than the problem requires.</li>
+<li><strong>Concision</strong> — Important information is easy to see and unnecessary noise is minimized.</li>
+<li><strong>Maintainability</strong> — The system can be understood, modified, tested, and operated safely.</li>
+<li><strong>Extensibility</strong> — Expected areas of future change can evolve without destabilizing unrelated parts of the system.</li>
+<li><strong>Cost Efficiency</strong> — Architecture should avoid unnecessary standing infrastructure and keep idle cost close to zero whenever practical.</li>
+<li><strong>Security</strong> - Minimize trust, privilege, exposed surface area, and sensitive data.</li>
+<li><strong>Operability</strong> - Production software should make its health, behavior, and failures understandable.</li>
+<li><strong>Consistency</strong> — Similar problems are solved in similar ways using established conventions.</li>
+<li><strong>Documentation and Agent Context</strong> - The smallest durable body of knowledge that allows a human or agent to make good decisions about the system.</li>
+</ol>
+</section>
+<section id="sec-1-joyful-and-intuitive-user-experience" class="chapter" data-target="1-joyful-and-intuitive-user-experience">
+<h1 id="1-joyful-and-intuitive-user-experience"><span class="chapter-num">1</span>Joyful and Intuitive User Experience</h1>
+<p>Great engineering is only valuable if it produces software people actually want to use.</p>
+<p>Software should be designed from the perspective of the person using it, not merely from the perspective of the person or agent  implementing it.</p>
+<p>Every interaction should aim to feel:</p>
+<ul>
+<li><strong>Obvious</strong> — Users understand what to do.</li>
+<li><strong>Fast</strong> — The system responds promptly and avoids unnecessary delay.</li>
+<li><strong>Predictable</strong> — Actions behave as users expect.</li>
+<li><strong>Forgiving</strong> — Mistakes are easy to recover from.</li>
+<li><strong>Pleasant</strong> — The experience feels polished and considered.</li>
+</ul>
+<h2 id="optimize-for-the-users-goal">Optimize for the User's Goal</h2>
+<p>Design around what the user is trying to accomplish, not around the internal mechanics of the system.</p>
+<p>Ask:</p>
+<ul>
+<li>What is the job to be done?</li>
+<li>What is the shortest reasonable path to that outcome?</li>
+<li>How can the system make it as easy and pleasant as possible?</li>
+</ul>
+<p>Do not expose internal system complexity unless the user benefits from understanding or controlling it.</p>
+<h2 id="make-the-common-path-obvious">Make the Common Path Obvious</h2>
+<p>The most common workflow should be immediately understandable.</p>
+<p>Prefer:</p>
+<ul>
+<li>Clear labels over clever terminology.</li>
+<li>Familiar interaction patterns.</li>
+<li>Sensible defaults over unnecessary configuration.</li>
+<li>Clear next steps.</li>
+<li>Progressive disclosure of advanced functionality.</li>
+</ul>
+<p>Optimize for the common case without preventing more advanced use where it is genuinely needed.</p>
+<h2 id="minimize-friction">Minimize Friction</h2>
+<p>Every additional field, click, screen, confirmation, setting, and decision-to-make is a user tax.</p>
+<p>Avoid asking users to:</p>
+<ul>
+<li>Repeat actions unnecessarily.</li>
+<li>Configure options they do not need.</li>
+<li>Understand implementation terminology.</li>
+<li>Perform work that can be automated by the code.</li>
+</ul>
+<p>Prefer removing unnecessary steps over making unnecessary steps faster.</p>
+<h2 id="make-it-feel-fast">Make It Feel Fast</h2>
+<p>Performance is part of the user experience.</p>
+<p>Respond quickly to interactions, keep unnecessary work off the user's critical path, and show useful progress when waiting is unavoidable.</p>
+<h2 id="keep-users-oriented-and-recoverable">Keep Users Oriented and Recoverable</h2>
+<p>Users should understand what happened after they take an action.</p>
+<p>Make important state changes visible, explain failures in understandable terms, preserve user work where possible, and provide a clear recovery path.</p>
+<p>For destructive actions, provide appropriate safeguards. For easily reversible actions, prefer recovery or undo over excessive confirmation.</p>
+<h2 id="hide-incidental-complexity">Hide Incidental Complexity</h2>
+<p>Implementation complexity should not automatically become product complexity.</p>
+<p>The existence of multiple services, models, databases, queues, providers, or processing stages does not mean the user should have to reason about them.</p>
+<p>Expose internal distinctions only when they correspond to meaningful user choices.</p>
+<h2 id="design-for-everyone">Design for Everyone</h2>
+<p>Accessibility is part of usability.</p>
+<p>Use established accessibility standards and ensure that core workflows remain usable by people with different abilities, input methods, and assistive technologies.</p>
+<h2 id="product-quality-is-an-engineering-responsibility">Product Quality Is an Engineering Responsibility</h2>
+<p>Implementation decisions affect latency, responsiveness, error handling, recoverability, accessibility, and workflow complexity.</p>
+<p>Engineers and coding agents should ask not only:</p>
+<p><strong>"Does this work?"</strong></p>
+<p>but also:</p>
+<p><strong>"What is it like to use?"</strong></p>
+</section>
+<section id="sec-2-correctness" class="chapter" data-target="2-correctness">
+<h1 id="2-correctness"><span class="chapter-num">2</span>Correctness</h1>
+<p>Software must reliably do what it is intended to do.</p>
+<p>Elegant, maintainable software is still poor software if it produces wrong results, corrupts state, or fails unpredictably.</p>
+<h2 id="make-the-contract-explicit">Make the Contract Explicit</h2>
+<p>Before implementing or changing behavior, identify:</p>
+<ul>
+<li>Expected inputs and outputs.</li>
+<li>Business rules and invariants.</li>
+<li>Error and recovery behavior.</li>
+<li>Important edge cases.</li>
+<li>Security and authorization requirements.</li>
+</ul>
+<p>Do not silently invent behavior when requirements are unclear. Make assumptions explicit.</p>
+<h2 id="preserve-invariants-and-data-integrity">Preserve Invariants and Data Integrity</h2>
+<p>Important truths about the system should be enforced, not merely documented.</p>
+<p>Use types, schemas, constraints, transactional boundaries, and validation where appropriate to prevent invalid states.</p>
+<p>Be especially deliberate about:</p>
+<ul>
+<li>State transitions.</li>
+<li>Concurrent updates.</li>
+<li>Duplicate requests.</li>
+<li>Retries.</li>
+<li>Partial failures.</li>
+<li>Operations that must be atomic or idempotent.</li>
+</ul>
+<h2 id="validate-at-boundaries">Validate at Boundaries</h2>
+<p>Treat user input, external APIs, files, queues, databases, and network calls as trust boundaries.</p>
+<p>Validate data where responsibility changes, and handle plausible failure modes such as timeouts, malformed responses, rate limits, duplicate delivery, and unavailable dependencies.</p>
+<p>Prefer explicit failure over silently producing an incorrect result.</p>
+<h2 id="test-the-behavior-that-matters">Test the Behavior That Matters</h2>
+<p>Tests should protect:</p>
+<ul>
+<li>Core user-visible behavior.</li>
+<li>Business rules.</li>
+<li>Important invariants.</li>
+<li>Edge cases.</li>
+<li>Failure and recovery paths.</li>
+<li>Security-sensitive behavior.</li>
+<li>Integration boundaries.</li>
+</ul>
+<p>Prefer tests of observable contracts and end-to-end process flows over those tightly coupled to implementation details.</p>
+<h3 id="ai-applications-require-evals">AI Applications Require Evals</h3>
+<p>Traditional tests are not sufficient for AI applications. Model behavior is probabilistic and can change with prompts, models, tools, context, and data. Important behavior should therefore be evaluated against representative examples of real use.</p>
+<p>Evals should:</p>
+<ul>
+<li>Measure behaviors that matter to the application.</li>
+<li>Be based on observed or plausible failure modes.</li>
+<li>Use representative production traces and test cases.</li>
+<li>Be rerun when prompts, models, tools, or workflows change.</li>
+<li>Prefer clear, application-specific criteria over generic quality metrics.</li>
+</ul>
+<p>Start simple. Review real outputs, identify recurring failures, and turn those failures into repeatable evals.</p>
+<p><strong>If an AI behavior matters, there should be an eval for it.</strong></p>
+<h2 id="verify-rather-than-assume">Verify Rather Than Assume</h2>
+<p>When correctness depends on the behavior of a library, API, framework, or external system, verify it.</p>
+<p>Use the strongest practical evidence available:</p>
+<ul>
+<li>Type checking and static analysis.</li>
+<li>Compilation.</li>
+<li>Automated tests.</li>
+<li>Integration and end-to-end tests.</li>
+<li>Runtime inspection.</li>
+<li>Logs and metrics.</li>
+<li>Reproduction of the actual user workflow.</li>
+</ul>
+<p>This is particularly important for coding agents: <strong>plausible code is not evidence of correct code.</strong></p>
+<p>The amount of verification should be proportional to the consequence of being wrong.</p>
+</section>
+<section id="sec-3-clarity" class="chapter" data-target="3-clarity">
+<h1 id="3-clarity"><span class="chapter-num">3</span>Clarity</h1>
+<p>The primary goal of readable code is clarity.</p>
+<p>Code should be written for the person or agent who will read it later.</p>
+<p>A reader should be able to answer:</p>
+<ul>
+<li>What is this code doing?</li>
+<li>Why is it doing it this way?</li>
+</ul>
+<h2 id="make-behavior-apparent">Make Behavior Apparent</h2>
+<p>Improve clarity by:</p>
+<ul>
+<li>Choosing descriptive names.</li>
+<li>Organizing related logic together.</li>
+<li>Breaking complex operations into understandable units.</li>
+<li>Making control flow and data flow apparent.</li>
+<li>Making important state changes explicit.</li>
+<li>Using comments or documentation where code alone cannot communicate intent.</li>
+</ul>
+<h2 id="explain-rationale-when-necessary">Explain Rationale When Necessary</h2>
+<p>Comments are particularly valuable for explaining:</p>
+<ul>
+<li>Non-obvious business rules.</li>
+<li>Performance trade-offs.</li>
+<li>Compatibility constraints.</li>
+<li>Security requirements.</li>
+<li>External system behavior.</li>
+<li>Counterintuitive algorithms.</li>
+<li>Important edge cases.</li>
+<li>Architectural decisions that might otherwise appear accidental.</li>
+</ul>
+<p>Prefer comments that explain <strong>why</strong> rather than restating <strong>what</strong>.</p>
+</section>
+<section id="sec-4-simplicity" class="chapter" data-target="4-simplicity">
+<h1 id="4-simplicity"><span class="chapter-num">4</span>Simplicity</h1>
+<p>Use the simplest design that satisfies the actual requirements.</p>
+<p>Simple systems have fewer moving parts, less hidden state, fewer abstractions, and less infrastructure. They are easier to understand, test, operate, and change.</p>
+<h2 id="question-the-need">Question the Need</h2>
+<p>Before adding a feature, service, abstraction, dependency, workflow, or configuration option, ask:</p>
+<ul>
+<li>What problem does this solve?</li>
+<li>Who or what depends on it?</li>
+<li>Is that need real now, or hypothetical?</li>
+<li>What happens if we do nothing?</li>
+</ul>
+<p>Do not create complexity in anticipation of requirements that may never arrive.</p>
+<h2 id="use-the-least-mechanism-necessary">Use the Least Mechanism Necessary</h2>
+<p>If the capability is necessary, solve it with the least powerful mechanism that comfortably satisfies the requirement.</p>
+<p>Prefer, in order:</p>
+<ol>
+<li>Basic language or platform capabilities.</li>
+<li>Standard libraries and native platform facilities.</li>
+<li>Established dependencies that materially improve the solution.</li>
+<li>New frameworks, services, abstractions, or infrastructure only when simpler options are inadequate.</li>
+</ol>
+<p>A familiar or sophisticated tool is not automatically the right tool.</p>
+<h2 id="complexity-must-earn-its-place">Complexity Must Earn Its Place</h2>
+<p>Additional complexity may be justified by requirements such as:</p>
+<ul>
+<li>Scale.</li>
+<li>Reliability.</li>
+<li>Security.</li>
+<li>Concurrency.</li>
+<li>Performance.</li>
+<li>Cost</li>
+<li>Regulatory constraints.</li>
+<li>Compatibility.</li>
+</ul>
+<p>When complexity is necessary, make the reason explicit.</p>
+<h2 id="dont-optimize-what-can-be-removed">Don't Optimize What Can Be Removed</h2>
+<p>When something becomes slow, expensive, fragile, or difficult to maintain, do not assume the answer is to optimize it.</p>
+<p>First ask whether it still needs to exist.</p>
+<p>Before refactoring, scaling, or redesigning it, ask:</p>
+<ul>
+<li>What value does it provide?</li>
+<li>Is that value still worth its complexity and cost?</li>
+<li>What would happen if we removed or simplified it?</li>
+</ul>
+<p>Prefer elimination over optimization when the capability is unnecessary or no longer worth its cost.</p>
+<h2 id="gate-the-introduction-of-third-party-dependencies">Gate the Introduction of Third-Party Dependencies</h2>
+<p>The use of third-party libraries, packages, and frameworks can accelerate product development by way of responsibility delegation. But they can also introduce supply chain risks and unnecessary bloat into software products. Critically evaluate the inclusion of any third-party solution by asking:</p>
+<ul>
+<li>Does the solution solve my problem?</li>
+<li>Does the solution fit the scope of my problem?</li>
+<li>What risks am I taking on by incorporating the solution? </li>
+<li>Can a coding agent easily reproduce the required functionality?</li>
+</ul>
+</section>
+<section id="sec-5-concision" class="chapter" data-target="5-concision">
+<h1 id="5-concision"><span class="chapter-num">5</span>Concision</h1>
+<p>Concise code maximizes signal and minimizes noise.</p>
+<p>The goal is not minimum line count. The goal is to make important information easy to see.</p>
+<p>Signal can be obscured by:</p>
+<ul>
+<li>Repetition.</li>
+<li>Boilerplate.</li>
+<li>Extraneous syntax.</li>
+<li>Opaque names.</li>
+<li>Excessive indirection.</li>
+<li>Unnecessary abstractions.</li>
+<li>Excessive commentary.</li>
+<li>Overly fragmented code.</li>
+</ul>
+<p>Do not remove duplication merely to satisfy a rule. A bad abstraction can be worse than a small amount of repetition.</p>
+</section>
+<section id="sec-6-maintainability" class="chapter" data-target="6-maintainability">
+<h1 id="6-maintainability"><span class="chapter-num">6</span>Maintainability</h1>
+<p>Maintainable systems allow future engineers to make changes correctly without reconstructing the original author's mental model.</p>
+<p>Maintainable software:</p>
+<ul>
+<li>Makes assumptions explicit.</li>
+<li>Separates responsibilities appropriately.</li>
+<li>Minimizes coupling.</li>
+<li>Avoids unnecessary dependencies.</li>
+<li>Avoids speculative functionality.</li>
+<li>Uses abstractions that reflect meaningful concepts.</li>
+<li>Provides stable and understandable interfaces.</li>
+<li>Supports safe evolution.</li>
+<li>Includes tests for important behavior.</li>
+<li>Produces useful diagnostics.</li>
+</ul>
+<h2 id="optimize-for-safe-change">Optimize for Safe Change</h2>
+<p>Prefer designs in which:</p>
+<ul>
+<li>Related changes remain localized.</li>
+<li>Important invariants are easy to identify.</li>
+<li>Common modifications do not require editing unrelated components.</li>
+<li>Failures occur close to their cause.</li>
+<li>Dependencies are explicit.</li>
+<li>Interfaces can evolve without widespread breakage.</li>
+</ul>
+</section>
+<section id="sec-7-extensibility" class="chapter" data-target="7-extensibility">
+<h1 id="7-extensibility"><span class="chapter-num">7</span>Extensibility</h1>
+<p>Systems should be designed so that <strong>areas expected to change can evolve without requiring broad modification of stable parts of the system</strong>.</p>
+<p>Extensibility is not a requirement to make every component generic or pluggable.</p>
+<h2 id="design-around-likely-axes-of-change">Design Around Likely Axes of Change</h2>
+<p>Likely areas of variation may include:</p>
+<ul>
+<li>Data providers.</li>
+<li>Storage backends.</li>
+<li>Authentication mechanisms.</li>
+<li>Model providers.</li>
+<li>Payment processors.</li>
+<li>Output formats.</li>
+<li>Processing strategies.</li>
+<li>Deployment targets.</li>
+<li>External integrations.</li>
+<li>Business rules known to vary.</li>
+</ul>
+<p>Where meaningful variation is expected, isolate it behind an appropriate component boundary.</p>
+<h2 id="use-modular-boundaries">Use Modular Boundaries</h2>
+<p>Components should have:</p>
+<ul>
+<li>A coherent responsibility.</li>
+<li>A clear interface.</li>
+<li>Explicit inputs and outputs.</li>
+<li>Minimal knowledge of other components' internals.</li>
+<li>Limited side effects outside their responsibility.</li>
+</ul>
+<h2 id="prefer-stable-contracts-over-internal-coupling">Prefer Stable Contracts Over Internal Coupling</h2>
+<p>Avoid dependencies on:</p>
+<ul>
+<li>Internal data structures.</li>
+<li>Private implementation details.</li>
+<li>Incidental side effects.</li>
+<li>Undocumented behavior.</li>
+<li>Shared mutable state.</li>
+</ul>
+<h2 id="prefer-composition-over-central-branching">Prefer Composition Over Central Branching</h2>
+<p>When new variants are expected, prefer adding components rather than continually expanding centralized conditional logic.</p>
+<h2 id="preserve-replaceability">Preserve Replaceability</h2>
+<p>Where practical, components behind stable interfaces should be replaceable without redesigning the rest of the system.</p>
+<h2 id="avoid-speculative-extensibility">Avoid Speculative Extensibility</h2>
+<p>Every interface, plugin mechanism, configuration layer, and abstraction adds complexity.</p>
+</section>
+<section id="sec-8-cost-efficient-architecture" class="chapter" data-target="8-cost-efficient-architecture">
+<h1 id="8-cost-efficient-architecture"><span class="chapter-num">8</span>Cost-Efficient Architecture</h1>
+<p>For cloud-based systems, keep idle system cost close to zero whenever practical.</p>
+<p>Treat standing infrastructure cost as an architectural constraint, not merely an operational concern.</p>
+<h2 id="do-not-provision-infrastructure-by-habit">Do Not Provision Infrastructure by Habit</h2>
+<p>Technology familiarity is not sufficient justification for architectural complexity.</p>
+<p>Do not introduce infrastructure such as:</p>
+<ul>
+<li>Kubernetes clusters.</li>
+<li>Permanently running virtual machines.</li>
+<li>Always-on container fleets.</li>
+<li>Dedicated database clusters.</li>
+<li>Load balancers.</li>
+<li>NAT gateways.</li>
+<li>Search clusters.</li>
+<li>Message-broker clusters.</li>
+<li>Large reserved capacity.</li>
+</ul>
+<p>unless requirements justify their ongoing cost and operational burden.</p>
+<h2 id="prefer-architectures-that-scale-down">Prefer Architectures That Scale Down</h2>
+<p>When requirements permit, prefer components whose cost tracks actual usage.</p>
+<p>Examples include:</p>
+<ul>
+<li>Serverless compute.</li>
+<li>Event-driven processing.</li>
+<li>Consumption-based managed services.</li>
+<li>Object storage.</li>
+<li>Databases with low-cost or zero-capacity idle states.</li>
+<li>On-demand batch execution.</li>
+<li>Static delivery for static content.</li>
+</ul>
+<h2 id="standing-costs-must-be-sensible">Standing Costs Must Be Sensible</h2>
+<p>Always-on infrastructure may be justified by:</p>
+<ul>
+<li>Consistently high utilization.</li>
+<li>Strict latency requirements.</li>
+<li>Specialized networking.</li>
+<li>Stateful workloads.</li>
+<li>Predictable high throughput.</li>
+<li>Workloads unsuitable for scale-to-zero platforms.</li>
+<li>Regulatory or isolation requirements.</li>
+<li>Economics favoring reserved capacity at sustained utilization.</li>
+</ul>
+<h2 id="consider-total-operational-cost">Consider Total Operational Cost</h2>
+<p>Infrastructure choices also create costs in:</p>
+<ul>
+<li>Configuration.</li>
+<li>Monitoring.</li>
+<li>Patching.</li>
+<li>Security.</li>
+<li>Deployment.</li>
+<li>Incident response.</li>
+<li>Capacity planning.</li>
+<li>Backup and recovery.</li>
+<li>Developer cognitive load.</li>
+</ul>
+<h2 id="start-small-and-scale-when-evidence-requires-it">Start Small and Scale When Evidence Requires It</h2>
+<p>Whenever feasible:</p>
+<ol>
+<li>Start with the simplest low-idle-cost architecture that satisfies requirements.</li>
+<li>Measure actual workload and bottlenecks.</li>
+<li>Introduce additional infrastructure when observed requirements justify it.</li>
+</ol>
+</section>
+<section id="sec-9-security" class="chapter" data-target="9-security">
+<h1 id="9-security"><span class="chapter-num">9</span>Security</h1>
+<p>Software should be secure by default.</p>
+<p>Minimize trust, privilege, exposed surface area, and sensitive data.</p>
+<h2 id="apply-least-privilege">Apply Least Privilege</h2>
+<p>Grant users, services, agents, and infrastructure only the permissions they need.</p>
+<p>Avoid broad credentials, unnecessary administrative access, and shared secrets.</p>
+<h2 id="make-trust-boundaries-explicit">Make Trust Boundaries Explicit</h2>
+<p>Treat input crossing a system boundary as untrusted until validated.</p>
+<p>Authenticate and authorize at the appropriate boundary, and do not rely on client-side enforcement for security decisions.</p>
+<h2 id="minimize-sensitive-data">Minimize Sensitive Data</h2>
+<p>Collect, retain, expose, and log only the sensitive data the system actually needs.</p>
+<p>Keep secrets out of source code, logs, and user-visible errors. Use appropriate secret-management mechanisms instead.</p>
+<h2 id="fail-securely">Fail Securely</h2>
+<p>For security-sensitive operations, failure should not accidentally grant access or weaken protection.</p>
+<p>Prefer designs where unsafe states are difficult to create and easy to detect.</p>
+</section>
+<section id="sec-10-operability" class="chapter" data-target="10-operability">
+<h1 id="10-operability"><span class="chapter-num">10</span>Operability</h1>
+<p>Production software should make its health, behavior, and failures understandable.</p>
+<p>Systems should be easy to diagnose, recover, and operate without unnecessary manual intervention.</p>
+<h2 id="make-the-system-observable">Make the System Observable</h2>
+<p>Emit enough information to understand what the system is doing.</p>
+<p>Use logs, metrics, traces, and health signals as appropriate to the system.</p>
+<p>Prefer signals that help answer:</p>
+<ul>
+<li>What failed?</li>
+<li>Where did it fail?</li>
+<li>Why did it fail?</li>
+<li>Who or what was affected?</li>
+</ul>
+<p>For AI applications, preserve end-to-end traces of model and agent execution so significant decisions, tool calls, errors, and outputs can be reconstructed.</p>
+<h2 id="design-for-recovery">Design for Recovery</h2>
+<p>Plan for expected failure modes.</p>
+<p>Where appropriate, provide:</p>
+<ul>
+<li>Safe retries.</li>
+<li>Rollback.</li>
+<li>Restore procedures.</li>
+<li>Graceful degradation.</li>
+<li>Recovery from partial failure.</li>
+</ul>
+<p>Avoid designs where routine failures require heroic intervention.</p>
+<h2 id="automate-routine-operations">Automate Routine Operations</h2>
+<p>Automate repetitive operational work when practical, especially deployment, recovery, maintenance, and health checks.</p>
+<p>Operational complexity should earn its place just like implementation complexity.</p>
+</section>
+<section id="sec-11-consistency" class="chapter" data-target="11-consistency">
+<h1 id="11-consistency"><span class="chapter-num">11</span>Consistency</h1>
+<p>Similar problems should generally be solved in similar ways.</p>
+<p>Consistency should apply to:</p>
+<ul>
+<li>Naming.</li>
+<li>Project structure.</li>
+<li>Error handling.</li>
+<li>Testing patterns.</li>
+<li>API design.</li>
+<li>Logging.</li>
+<li>Configuration.</li>
+<li>Data representation.</li>
+<li>Common implementation patterns.</li>
+</ul>
+<p>Do not preserve a poor pattern merely because it already exists.</p>
+</section>
+<section id="sec-12-documentation-and-agent-context" class="chapter" data-target="12-documentation-and-agent-context">
+<h1 id="12-documentation-and-agent-context"><span class="chapter-num">12</span>Documentation and Agent Context</h1>
+<p>The objective is to document the smallest durable body of knowledge that allows a human or agent to make good decisions about the system, exposed progressively as that knowledge becomes relevant.</p>
+<p>Documentation is part of the software system. It should live with the code, evolve with the code, and be structured for efficient discovery by both humans and AI coding agents.</p>
+<h2 id="co-location">Co-location</h2>
+<p>Project documentation should normally be versioned in the same repository as the code it describes.</p>
+<p>Core documentation belongs under:</p>
+<pre><code class="language-text">docs/
+</code></pre>
+<p>Important engineering knowledge should not exist only in external wikis, chat threads, ticket systems, or people's memories.</p>
+<p>External systems may supplement repository documentation, but information required to understand, modify, secure, or operate the software should remain discoverable from the repository.</p>
+<h2 id="treat-documentation-as-an-agent-interface">Treat Documentation as an Agent Interface</h2>
+<p>Repository documentation is the interface through which coding agents acquire project-specific judgment.</p>
+<p>Code shows what the system currently does. Documentation should explain what implementation alone cannot reliably reveal:</p>
+<ul>
+<li>What the overarching principles of development for the system are.</li>
+<li>Why the system is structured this way.</li>
+<li>Which constraints are intentional.</li>
+<li>Which patterns should continue.</li>
+<li>Which patterns are temporary.</li>
+<li>Which trade-offs have already been considered.</li>
+<li>Which parts of the system are expected to change.</li>
+<li>Which user-experience characteristics must be preserved.</li>
+<li>Which security and operational boundaries must not be violated.</li>
+</ul>
+<p>Good documentation reduces the chance that an agent makes a locally reasonable but globally incorrect change.</p>
+<h2 id="organization">Organization</h2>
+<p>Documentation should be organized by concern rather than accumulated in a single handbook or miscellaneous notes file.</p>
+<p>A typical structure may look like:</p>
+<pre><code class="language-text">docs/
+├── llms.txt
+├── architecture.md
+├── user-experience.md
+├── security.md
+├── data.md
+├── operations.md
+├── testing.md
+└── adr/
+    ├── llms.txt
+    ├── 0001-use-postgresql.md
+    └── 0002-use-event-driven-processing.md
+</code></pre>
+<p>Create only the documents the project actually needs.</p>
+<p>For larger systems, documentation may also live closer to a subsystem:</p>
+<pre><code class="language-text">services/
+└── payments/
+    └── docs/
+        ├── llms.txt
+        ├── architecture.md
+        └── integration.md
+</code></pre>
+<p>Add hierarchy only when it creates a meaningful boundary for discovery or retrieval.</p>
+<h2 id="progressive-disclosure-pattern">Progressive Disclosure Pattern</h2>
+<p>Documentation should follow a progressive-disclosure model:</p>
+<p><strong>Provide a small, high-signal index first. Link from it to focused documents. Retrieve deeper context only when the task requires it.</strong></p>
+<p>Every documentation collection intended for agent use should provide an <code>llms.txt</code> index.</p>
+<p>At minimum:</p>
+<pre><code class="language-text">docs/llms.txt
+</code></pre>
+<p>should be the primary entry point to project documentation.</p>
+<p>Subcollections with substantial independent content should have their own index. In particular:</p>
+<pre><code class="language-text">docs/adr/llms.txt
+</code></pre>
+<p>should index Architecture Decision Records.</p>
+<p>An agent working on a task should:</p>
+<ol>
+<li>Read the nearest relevant <code>llms.txt</code>.</li>
+<li>Identify the documents related to the task.</li>
+<li>Open only those documents.</li>
+<li>Follow deeper references only when additional context is necessary.</li>
+</ol>
+<p>For example:</p>
+<pre><code class="language-text">docs/llms.txt
+    ↓
+docs/security.md
+    ↓
+docs/adr/llms.txt
+    ↓
+docs/adr/0012-use-oidc.md
+</code></pre>
+<p>An authentication change should not require loading unrelated documentation or every historical architectural decision.</p>
+<p><strong>Context should expand in response to need.</strong></p>
+<h2 id="keep-indexes-small-and-high-signal">Keep Indexes Small and High-Signal</h2>
+<p>An <code>llms.txt</code> file is a routing layer, not the documentation itself.</p>
+<p>It should contain:</p>
+<ol>
+<li>An H1 naming the collection.</li>
+<li>A short blockquote explaining its purpose.</li>
+<li>Minimal orientation needed to interpret the index.</li>
+<li>H2 sections grouping related resources.</li>
+<li>Markdown links with concise descriptions.</li>
+</ol>
+<p>Example:</p>
+<pre><code class="language-text"># Project Documentation
+
+&gt; Engineering and product documentation for this application. Use this index
+&gt; to locate the smallest set of documents relevant to the task.
+
+## Architecture
+
+- [System Architecture](architecture.md): Major components, boundaries, data flow, and deployment model.
+- [Data Architecture](data.md): Data ownership, storage, schemas, retention, and lifecycle.
+
+## Product
+
+- [User Experience](user-experience.md): Core workflows, interaction principles, and interface conventions.
+
+## Security
+
+- [Security Architecture](security.md): Trust boundaries, authentication, authorization, secrets, and threat assumptions.
+
+## Decisions
+
+- [Architecture Decision Records](adr/llms.txt): Significant architectural decisions and their rationale.
+</code></pre>
+<p>Descriptions should tell the reader <strong>why the document may be relevant</strong>, not merely repeat its title.</p>
+<p>If the index itself becomes expensive to understand, progressive disclosure has failed.</p>
+<h2 id="prefer-focused-self-contained-documents">Prefer Focused, Self-Contained Documents</h2>
+<p>Each document should cover one coherent concern and contain enough local context to be useful on its own.</p>
+<p>Prefer:</p>
+<pre><code class="language-text">security.md
+architecture.md
+data.md
+</code></pre>
+<p>over:</p>
+<pre><code class="language-text">misc-notes.md
+everything-about-the-project.md
+engineering-brain-dump.md
+</code></pre>
+<p>Split large topics when doing so creates a meaningful retrieval boundary, not merely to make files shorter.</p>
+<p>Documentation should preserve information that cannot be reliably reconstructed from implementation alone, including:</p>
+<ul>
+<li>Design rationale.</li>
+<li>Important constraints.</li>
+<li>Trade-offs.</li>
+<li>Security assumptions.</li>
+<li>User-experience requirements.</li>
+<li>Operational requirements.</li>
+<li>Important invariants.</li>
+<li>External constraints.</li>
+</ul>
+<p>Avoid documentation that simply paraphrases implementation details already obvious from the code.</p>
+<h2 id="document-types">Document Types</h2>
+<h3 id="core-documents">Core Documents</h3>
+<p>Core documents describe the current system and the constraints engineers and agents should understand before modifying it.</p>
+<p>Typical documents include:</p>
+<ul>
+<li><strong>Architecture</strong> — Major components, boundaries, dependencies, data flow, and deployment model.</li>
+<li><strong>User Experience</strong> — Core workflows, interaction principles, usability constraints, and product conventions.</li>
+<li><strong>Security</strong> — Trust boundaries, authentication, authorization, secrets, threat assumptions, and security requirements.</li>
+<li><strong>Data</strong> — Ownership, storage, schemas, lifecycle, retention, and movement of data.</li>
+<li><strong>Operations</strong> — Deployment, observability, recovery, runtime dependencies, and operational expectations.</li>
+<li><strong>Testing</strong> — Testing strategy, critical test boundaries, and important quality requirements.</li>
+</ul>
+<p>These describe the current state and enduring expectations of the system.</p>
+<h3 id="architecture-decision-records">Architecture Decision Records</h3>
+<p>Significant architectural decisions should be recorded under:</p>
+<pre><code class="language-text">docs/adr/
+</code></pre>
+<p>ADRs preserve reasoning that would otherwise be visible only through code or institutional memory.</p>
+<p>Each ADR should be a self-contained Markdown document capturing:</p>
+<ul>
+<li>The context that forced the decision.</li>
+<li>The decision itself.</li>
+<li>The rationale and trade-offs.</li>
+<li>The consequences.</li>
+<li>Relevant implementation references.</li>
+</ul>
+<p>Maintain:</p>
+<pre><code class="language-text">docs/adr/llms.txt
+</code></pre>
+<p>as the progressive-disclosure index for those decisions.</p>
+<p>The index should group ADRs by architectural concern and include each record's current status and a concise description.</p>
+<p>Agents should inspect the ADR index before making changes in areas where previous architectural decisions may constrain the solution.</p>
+<h2 id="keep-documentation-current">Keep Documentation Current</h2>
+<p>Documentation that no longer reflects the system can be worse than missing documentation because humans and agents may treat it as authoritative.</p>
+<p>When changing the system, determine whether the change affects:</p>
+<ul>
+<li>Core documentation.</li>
+<li>Existing ADRs.</li>
+<li>Relevant <code>llms.txt</code> indexes.</li>
+</ul>
+<p>Update affected documentation in the same change whenever practical.</p>
+<p>Architectural decision changes should be recorded as documents that supersede the previous ADR rather than updating.</p>
+</section>
+  </main>
+</div>
+
+<footer class="site-foot">
+  <p>Modern Software Engineering in Anger</p>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  function icon(){ var d=root.getAttribute('data-theme'); btn.textContent = d==='dark'?'\u25CF':(d==='light'?'\u25CB':'\u25D0'); }
+  try{ var s=localStorage.getItem('mse-theme'); if(s) root.setAttribute('data-theme',s); }catch(e){}
+  icon();
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var next = cur==='dark' ? 'light' : (cur==='light' ? null : 'dark');
+    if(next){ root.setAttribute('data-theme',next); } else { root.removeAttribute('data-theme'); }
+    try{ next?localStorage.setItem('mse-theme',next):localStorage.removeItem('mse-theme'); }catch(e){}
+    icon();
+  });
+
+  var bar=document.getElementById('progress');
+  function onScroll(){
+    var h=document.documentElement, max=h.scrollHeight-h.clientHeight;
+    bar.style.width = (max>0 ? (h.scrollTop/max*100) : 0) + '%';
+  }
+  document.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  var byHash={}; links.forEach(function(a){ byHash[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(document.querySelectorAll('.content h1[id], .content h2[id]'));
+  function spy(){
+    var best=null, top=120;
+    heads.forEach(function(h){ var r=h.getBoundingClientRect(); if(r.top<=top) best=h; });
+    if(!best && heads.length) best=heads[0];
+    links.forEach(function(a){ a.classList.remove('active'); a.parentElement.classList.remove('active'); });
+    if(!best) return;
+    var a=byHash[best.id]; if(!a) return;
+    a.classList.add('active');
+    var li=a.closest('li'); if(li) li.classList.add('active');
+    var sub=a.closest('.nav-sub'); if(sub){ var p=sub.closest('li'); if(p) p.classList.add('active'); }
+  }
+  document.addEventListener('scroll',spy,{passive:true}); window.addEventListener('resize',spy); spy();
+})();
+</script>
+</body>
+</html>
